@@ -1,0 +1,38 @@
+{
+  "name": "excalibur-webpack",
+  "version": "1.0.0",
+  "private": true,
+  "description": "a webpack starter for excaliburjs projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run build:prod && npx playwright test",
+    "test:integration-update": "npx playwright test --update-snapshots",
+    "webpack": "webpack",
+    "dev": "webpack serve --config webpack.development.js",
+    "start": "npm run dev",
+    "build:dev": "webpack --config webpack.development.js",
+    "build:prod": "webpack --config webpack.production.js",
+    "serve": "serve dist"
+  },
+  "author": "Excalibur.js Team",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "clean-webpack-plugin": "4.0.0",
+    "compression-webpack-plugin": "11.1.0",
+    "html-webpack-plugin": "5.6.3",
+    "source-map-loader": "5.0.0",
+    "ts-loader": "9.5.1",
+    "typescript": "5.7.2",
+    "terser-webpack-plugin": "5.3.11",
+    "webpack": "5.97.1",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.2.0",
+    "webpack-merge": "6.0.1",
+    "serve": "14.2.4"
+  },
+  "dependencies": {
+    "excalibur": "0.30.0-alpha.1295"
+  }
+}
