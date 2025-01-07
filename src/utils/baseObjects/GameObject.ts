@@ -15,11 +15,9 @@ export class GameObject extends ex.Actor {
 		// this.logger.info("new gameobject:", this.name);
 		this.type = ObjectType.GameObject;
 		this.engine = engine;
-
+		this.start()
 	}
 
-	startClient() {}
-	startHost() {}
 	start() {}
 
 	resolveKeys(_control: Keys, _type = "hold") {}

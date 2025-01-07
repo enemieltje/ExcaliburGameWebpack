@@ -32,7 +32,7 @@ export class Player extends MovingObject {
 		this.addName();
 	}
 
-	startClient(): void {
+	start(): void {
 		this.engine.input.pointers.on("wheel", evt => {
 			this.zoomCam(evt);
 		});

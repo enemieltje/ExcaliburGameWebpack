@@ -20,10 +20,6 @@ export class MovingObject extends GameObject {
 		this.body.bounciness = 0.001;
 	}
 
-	startHost() {
-		super.startHost();
-	}
-
 	addName() {
 		const text = new Text({
 			text: this.name,

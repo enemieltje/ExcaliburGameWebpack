@@ -1,7 +1,7 @@
 
 import {  WsMessage } from "./utils/types";
 import { GameObject } from "./utils/baseObjects/GameObject";
-import { Color, Text, DisplayMode,SolverStrategy, Engine, Font, ScreenElement, vec } from "excalibur";
+import { Color, Text, DisplayMode,SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext } from "excalibur";
 import { Player } from "./objects/Player";
 import { orbitShader } from "./shaders/OrbitShader";
 import { starShader } from "./shaders/StarShader";
@@ -117,8 +117,20 @@ export class GameEngine extends Engine{
 		this.addObject(earth);
 		this.addObject(mun);
 	}
+
 	addObject(object: GameObject) {
 		this.add(object);
 		this.objects.set(object.name, object);
+	}
+
+	onPreDraw(ctx: ExcaliburGraphicsContext, delta: number): void {
+		super.onPreDraw(ctx, delta);
+		orbitShader
+			.setRotation(-this.currentScene.camera.rotation)
+			.setZoom(this.currentScene.camera.zoom);
+		starShader
+			.setRotation(-this.currentScene.camera.rotation)
+			.setPos(this.worldToScreenCoordinates(vec(0, 0)))
+			.setZoom(this.currentScene.camera.zoom);
 	}
 }
