@@ -89,7 +89,7 @@ export class Autopilot {
 		this.updateOrbit();
 		const orbit = this.object.getOrbit();
 		if (!orbit) return;
-		this.object.forces.autopilot = orbit.e
+		this.object.forces.autopilot = orbit.eccentricityVector
 			.scale((this.object as Player).speed || 1000)
 			.rotate(-Math.PI / 2);
 		return this.object.forces.autopilot;

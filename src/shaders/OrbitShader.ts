@@ -1,12 +1,12 @@
 import { PostProcessor, ScreenShader, Shader, VertexLayout } from "excalibur";
 import shader from "./glsl/OrbitShader.glsl"
-import { OrbitData } from "@/utils/types";
+import { ShaderOrbit } from "@/utils/types";
 
 class OrbitShader implements PostProcessor {
 	private _shader?: ScreenShader;
 	rotation = 0;
 	zoom = 1;
-	orbits: Record<string, OrbitData> = {};
+	orbits: Record<string, ShaderOrbit> = {};
 
 	initialize(gl: WebGL2RenderingContext): void {
 		this._shader = new ScreenShader(gl, shader);
@@ -20,7 +20,7 @@ class OrbitShader implements PostProcessor {
 		return this._shader!.getShader();
 	}
 
-	setOrbit(name: string, orbit: OrbitData) {
+	setOrbit(name: string, orbit: ShaderOrbit) {
 		this.orbits[name] = orbit;
 	}
 
@@ -31,8 +31,8 @@ class OrbitShader implements PostProcessor {
 				"uniform4fv",
 				`u_orbit[${i}]`,
 				[
-					orbit.c.x,
-					orbit.c.y,
+					orbit.pos.x,
+					orbit.pos.y,
 					orbit.a,
 					orbit.b,
 				]
@@ -40,7 +40,7 @@ class OrbitShader implements PostProcessor {
 			this.getShader().setUniform(
 				"uniform1f",
 				`u_rot[${i}]`,
-				this.rotation - orbit.e.toAngle()
+				this.rotation - orbit.rotation
 			);
 		});
 		this.getShader().setUniform("uniform1f", "u_zoom", this.zoom);

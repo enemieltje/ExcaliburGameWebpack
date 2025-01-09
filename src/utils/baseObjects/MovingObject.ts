@@ -1,16 +1,18 @@
 import { ObjectType } from "../ObjectType";
 import { GameObject } from "./GameObject";
 import { GameEngine } from "../../GameEngine";
-import { Arrow, Orbit } from "../../objects/Arrow";
-import { OrbitData } from "../types";
+import { Arrow } from "../../objects/Arrow";
+import { Orbit, Propagator } from "../types";
 import { orbitShader } from "../../shaders/OrbitShader";
-import { ActorArgs, CollisionType, Vector, Text, Actor, vec, Engine } from "excalibur";
+import { ActorArgs, CollisionType, Vector, Text, Actor, vec, Engine, Color } from "excalibur";
 
 export class MovingObject extends GameObject {
 	forceArrows: Record<string, Arrow> = {};
-	orbits: Record<string, Orbit> = {};
+	// orbits: Record<string, Orbit> = {};
 	forces: Record<string, Vector> = {};
 	torques: Record<string, number> = {};
+	propagator: Propagator = "Kepler";
+	lastKnownOrbit: Orbit;
 
 	constructor(engine: GameEngine, config?: ActorArgs) {
 		super(engine, config);
@@ -18,6 +20,11 @@ export class MovingObject extends GameObject {
 		this.body.mass = this.width * this.height || 10;
 		this.body.collisionType = CollisionType.Active;
 		this.body.bounciness = 0.001;
+		// this.updateGravity();
+		// this.lastKnownOrbit = this.getOrbit()
+		// console.debug(
+		// 	`name: ${this.name}`,
+		// 	`lastKnownOrbit: ${this.lastKnownOrbit?.planet?.name}`)
 	}
 
 	addName() {
@@ -30,32 +37,25 @@ export class MovingObject extends GameObject {
 		this.namePlate = new Actor({
 			name: this.name + "namePlate",
 			anchor: vec(0.5, -0.1),
-			// pos: vec(0, 10),
 		});
 		this.namePlate.graphics.use(text);
 		this.addChild(this.namePlate);
 	}
 
 	getOrbit(planet?: GameObject) {
-		if (!planet) planet = this.findOrbitObject();
-		if (!planet) return;
-		const r = this.pos.sub(planet.pos);
-		const rdot = this.vel.sub(planet.vel);
-		const u = this.body.mass + planet.body.mass;
-		const h = r.cross(rdot); // orbital momentum
 
-		const e = rdot
-			.cross(h)
-			.scale(1 / u)
-			.sub(r.normalize()); // eccentricity
+		switch (this.propagator) {
+			case "Kepler":
+				return this.lastKnownOrbit
+			case "Step":
+				if (!planet) planet = this.findOrbitObject();
+				if (!planet) return;
 
-		const a = 1 / (2 / r.size - (rdot.size * rdot.size) / u); // semi major axis
-		const b = a * Math.sqrt(1 - e.size * e.size);
-		const c = this.engine.worldToScreenCoordinates(planet.pos.sub(e.scale(a)));
-		const pos = this.engine.worldToScreenCoordinates(planet.pos);
+				const orbit = Orbit.fromObject(planet, this)
 
-		const orbitData: OrbitData = { planet, pos, r, rdot, u, h, e, a, b, c };
-		return orbitData;
+				return orbit
+		}
+
 	}
 
 	pathPredict(length: number, _delta: number, scale = 1) {
@@ -81,8 +81,6 @@ export class MovingObject extends GameObject {
 
 	findOrbitObject() {
 		// Find the closest planet
-		// console.log(this.parentBody);
-		// if (this.parentBody) return this.engine.objects.get(this.parentBody);
 		let maxForce = 0;
 		let planetName = "";
 		for (const forceName in this.forces) {
@@ -120,24 +118,18 @@ export class MovingObject extends GameObject {
 		this.forceArrows[name]?.set(start, vec);
 	}
 
-	drawEllipse(name: string, start: Vector, e: Vector, a: number) {
-		if (!this.orbits[name]) {
-			this.orbits[name] = new Orbit(this);
-		}
-		this.orbits[name]?.set(start, e, a);
-	}
-
 	drawOrbit(planet?: GameObject) {
 		const orbit = this.getOrbit(planet);
+		// const orbit = this.lastKnownOrbit;
 		if (!orbit) return;
 		// this.drawEllipse("orbit", orbit.planet.pos, orbit.e, orbit.a);
 		const direction = orbit.rdot.cross(orbit.r) > 0 ? 1 : -1;
 		this.drawArrow(
 			"circularize",
 			this.pos,
-			orbit.e.scale(100).rotate((direction * Math.PI) / 2)
+			orbit.eccentricityVector.scale(100).rotate((direction * Math.PI) / 2)
 		);
-		orbitShader.setOrbit(this.name, orbit);
+		orbitShader.setOrbit(this.name, orbit.shaderData);
 	}
 
 	onPreUpdate(engine: Engine, delta: number): void {
@@ -145,6 +137,24 @@ export class MovingObject extends GameObject {
 	}
 
 	update(engine: Engine, delta: number): void {
+		switch (this.propagator) {
+			case "Kepler":
+				this.propagateKepler()
+				break;
+			case "Step":
+				this.propagateStep()
+				break;
+		}
+		super.update(engine, delta);
+	}
+
+	propagateKepler() {
+		if (!this.lastKnownOrbit) return
+		this.pos = this.lastKnownOrbit.worldPosition
+		this.vel = this.lastKnownOrbit.rdot.add(this.lastKnownOrbit.centralBody.vel)
+	}
+
+	propagateStep() {
 		this.updateGravity();
 		this.acc = Vector.Zero;
 		for (const forceName in this.forces) {
@@ -158,7 +168,6 @@ export class MovingObject extends GameObject {
 
 		if (this.namePlate)
 			this.namePlate.rotation = -this.engine.currentScene.camera.rotation - this.rotation;
-		super.update(engine, delta);
 	}
 
 	onPostUpdate(engine: Engine, delta: number): void {

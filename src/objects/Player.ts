@@ -25,6 +25,7 @@ export class Player extends MovingObject {
 			height: 50,
 			color: Color.Magenta,
 		});
+		this.propagator = "Step"
 		this.type = ObjectType.Player;
 		this.body.mass = 25;
 		this.speed = this.body.mass * 30;

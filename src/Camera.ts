@@ -92,7 +92,7 @@ export class MyCamera {
 			return;
 		}
 		const direction = orbit.rdot.cross(orbit.r) > 0 ? Math.PI : 0;
-		this.camera.rotation = -this.object.vel.sub(orbit.planet.vel).toAngle() + direction;
+		this.camera.rotation = -this.object.vel.sub(orbit.centralBody.vel).toAngle() + direction;
 	}
 
 	updateOrbit() {

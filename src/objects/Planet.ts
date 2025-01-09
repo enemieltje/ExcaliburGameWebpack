@@ -2,7 +2,8 @@
 import { ObjectType } from "../utils/ObjectType";
 import { MovingObject } from "../utils/baseObjects/MovingObject";
 import { GameEngine } from "../GameEngine";
-import { ActorArgs, randomIntInRange, vec, Color, Engine } from "excalibur";
+import { ActorArgs, randomIntInRange, vec, Color, Engine, CollisionType, Vector } from "excalibur";
+import { Orbit } from "@/utils/types";
 
 export class Planet extends MovingObject {
 	parentBody?: string;
@@ -10,6 +11,7 @@ export class Planet extends MovingObject {
 
 	constructor(engine: GameEngine, config?: ActorArgs) {
 		super(engine, {
+			collisionType: CollisionType.Fixed,
 			name: config?.name || "planet" + randomIntInRange(0, 100),
 			pos: config?.pos ? vec(config!.pos!.x, config!.pos!.y) : vec(0, 0),
 			vel: config?.vel ? vec(config!.vel!.x, config!.vel!.y) : vec(0, 0),
@@ -22,22 +24,15 @@ export class Planet extends MovingObject {
 	}
 
 	createSatellite(radius: number, r: number, angle = 0, mass?: number) {
+
+		const orbit = new Orbit(this, r, vec(1E-16, 0).rotate(angle))
 		const planet = new Planet(this.engine, { radius });
+
 		planet.parentBody = this.name;
 		this.satellites.push(planet.name);
 		if (mass) planet.body.mass = mass;
-		planet.pos = this.pos.add(vec(r, 0).rotate(angle));
-		// console.log(planet.name, planet.pos);
+		planet.lastKnownOrbit = orbit
 
-		const gravity = planet.getGravity(this);
-		const acc = gravity.size / planet.body.mass;
-		const inertia = Math.sqrt(acc * r) * planet.body.mass;
-		// console.log(acc, inertia / planet.body.mass);
-		planet.vel = this.vel.add(
-			vec(inertia / planet.body.mass, 0).rotate(angle + Math.PI / 2)
-		);
-		this.vel = this.vel.add(vec(-inertia / this.body.mass, 0).rotate(angle + Math.PI / 2));
-		// this.engine.add(planet);
 		return planet;
 	}
 

@@ -11,6 +11,7 @@ export class GameEngine extends Engine{
 	objects = new Map<string, GameObject>();
 	ws?: WebSocket;
 	player?: Player;
+	elapsedMs: number = 0;
 
 	constructor(ws?: WebSocket) {
 
@@ -123,8 +124,8 @@ export class GameEngine extends Engine{
 		this.objects.set(object.name, object);
 	}
 
-	onPreDraw(ctx: ExcaliburGraphicsContext, delta: number): void {
-		super.onPreDraw(ctx, delta);
+	onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
+		super.onPreDraw(ctx, elapsedMs);
 		orbitShader
 			.setRotation(-this.currentScene.camera.rotation)
 			.setZoom(this.currentScene.camera.zoom);
@@ -132,5 +133,10 @@ export class GameEngine extends Engine{
 			.setRotation(-this.currentScene.camera.rotation)
 			.setPos(this.worldToScreenCoordinates(vec(0, 0)))
 			.setZoom(this.currentScene.camera.zoom);
+	}
+
+	onPostUpdate(engine: Engine, elapsedMs: number): void {
+		super.onPostUpdate(engine, elapsedMs)
+		this.elapsedMs += elapsedMs
 	}
 }
