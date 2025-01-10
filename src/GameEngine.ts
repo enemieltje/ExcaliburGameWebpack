@@ -1,13 +1,13 @@
 
-import {  WsMessage } from "./utils/types";
+import { WsMessage } from "./utils/types";
 import { GameObject } from "./utils/baseObjects/GameObject";
-import { Color, Text, DisplayMode,SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext } from "excalibur";
+import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext } from "excalibur";
 import { Player } from "./objects/Player";
 import { orbitShader } from "./shaders/OrbitShader";
 import { starShader } from "./shaders/StarShader";
 import { Planet } from "./objects/Planet";
 
-export class GameEngine extends Engine{
+export class GameEngine extends Engine {
 	objects = new Map<string, GameObject>();
 	ws?: WebSocket;
 	player?: Player;
@@ -22,7 +22,7 @@ export class GameEngine extends Engine{
 			physics: {
 				solver: SolverStrategy.Realistic,
 				substep: 5 // Sub step the physics simulation for more robust simulations
-			  },
+			},
 		});
 
 		this.ws = ws;
@@ -49,8 +49,17 @@ export class GameEngine extends Engine{
 		this.addPlayer();
 		this.addHUD();
 		this.addPostProcessor();
+		this.save()
 	}
 
+	save() {
+		let saveData = ""
+		this.objects.forEach((object) => {
+			saveData += (object.toString())
+		})
+		console.debug(saveData)
+		return saveData
+	}
 
 	addPostProcessor() {
 		this.graphicsContext.addPostProcessor(orbitShader);

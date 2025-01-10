@@ -71,6 +71,11 @@ export class Player extends MovingObject {
 					// this.forces.keyboard?.addEqual(vec(-1, 0));
 					break;
 				case Keys.S:
+					if (
+						this.keyList.includes(Keys.ShiftLeft) &&
+						!this.lastKeyList.includes(Keys.V)
+					)
+						this.engine.save()
 				case Keys.Down:
 					kbForce.addEqual(Vector.Down);
 					// this.forces.keyboard?.addEqual(vec(0, 1));

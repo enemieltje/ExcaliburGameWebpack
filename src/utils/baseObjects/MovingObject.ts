@@ -8,7 +8,6 @@ import { ActorArgs, CollisionType, Vector, Text, Actor, vec, Engine, Color } fro
 
 export class MovingObject extends GameObject {
 	forceArrows: Record<string, Arrow> = {};
-	// orbits: Record<string, Orbit> = {};
 	forces: Record<string, Vector> = {};
 	torques: Record<string, number> = {};
 	propagator: Propagator = "Kepler";
@@ -25,6 +24,15 @@ export class MovingObject extends GameObject {
 		// console.debug(
 		// 	`name: ${this.name}`,
 		// 	`lastKnownOrbit: ${this.lastKnownOrbit?.planet?.name}`)
+	}
+
+	saveData() {
+		return {
+			...super.saveData(),
+			mass: this.body.mass,
+			lastKnownOrbit: this.getOrbit()?.saveData(),
+			propagator: this.propagator
+		}
 	}
 
 	addName() {
@@ -122,7 +130,7 @@ export class MovingObject extends GameObject {
 		const orbit = this.getOrbit(planet);
 		// const orbit = this.lastKnownOrbit;
 		if (!orbit) return;
-		// this.drawEllipse("orbit", orbit.planet.pos, orbit.e, orbit.a);
+
 		const direction = orbit.rdot.cross(orbit.r) > 0 ? 1 : -1;
 		this.drawArrow(
 			"circularize",
@@ -168,6 +176,7 @@ export class MovingObject extends GameObject {
 
 		if (this.namePlate)
 			this.namePlate.rotation = -this.engine.currentScene.camera.rotation - this.rotation;
+
 	}
 
 	onPostUpdate(engine: Engine, delta: number): void {

@@ -18,9 +18,21 @@ export class GameObject extends ex.Actor {
 		this.start()
 	}
 
-	start() {}
+	start() { }
 
-	resolveKeys(_control: Keys, _type = "hold") {}
+	saveData() {
+		return {
+			name: this.name,
+			type: this.type,
+			pos: { x: this.pos.x, y: this.pos.y },
+		}
+	}
+
+	toString() {
+		return JSON.stringify(this.saveData(), undefined, "\t")
+	}
+
+	resolveKeys(_control: Keys, _type = "hold") { }
 
 	onPostUpdate(engine: Engine, delta: number): void {
 		super.onPostUpdate(engine, delta);

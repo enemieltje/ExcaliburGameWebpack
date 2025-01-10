@@ -33,6 +33,16 @@ export class Orbit {
 		this.eccentricityVector = eccentricityVector
 	}
 
+	saveData() {
+		return {
+			centralBody: this.centralBody.name,
+			// satellite: this.satellite.name,
+			a: this.a,
+			// eccentricityVector: this.eccentricityVector,
+			e: { x: this.eccentricityVector.x, y: this.eccentricityVector.y },
+		}
+	}
+
 	static fromObject(centralBody: GameObject, satellite: GameObject) {
 		const r = satellite.pos.sub(centralBody.pos)
 		const rdot = satellite.vel.sub(centralBody.vel)
