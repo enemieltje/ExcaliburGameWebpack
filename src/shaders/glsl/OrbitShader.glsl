@@ -10,7 +10,7 @@ uniform vec4 u_orbit[20];// pos, a, b of orbit
 uniform float u_zoom;
 
 // the texCoords passed in from the vertex shader.
-in vec2 v_texcoord;
+in vec2 v_uv;
 
 out vec4 fragColor;
 
@@ -36,8 +36,8 @@ float get_ellipse(vec2 v_pos,float f_rot,float f_a,float f_b){
 void main(){
 
     vec2 v_screencoord;
-    v_screencoord.x=v_texcoord.x*u_resolution.x;
-    v_screencoord.y=(1.-v_texcoord.y)*u_resolution.y;
+    v_screencoord.x=v_uv.x*u_resolution.x;
+    v_screencoord.y=(1.-v_uv.y)*u_resolution.y;
 
     vec2 v_pos;
     float f_ell=0.;
@@ -49,7 +49,7 @@ void main(){
         f_ell+=get_ellipse(v_pos,u_rot[i],u_orbit[i].z * u_zoom,u_orbit[i].w * u_zoom);
     }
 
-    vec4 tex=texture(u_image,v_texcoord);
+    vec4 tex=texture(u_image,v_uv);
     float sum=tex.r+tex.g+tex.b;
     if(sum<.5) fragColor=vec4(tex.r-f_ell,tex.g-f_ell ,tex.b+f_ell,1.);
     else fragColor=vec4(tex.r,tex.g,tex.b,1.);

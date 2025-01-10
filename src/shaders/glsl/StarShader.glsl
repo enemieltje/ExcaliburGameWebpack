@@ -9,7 +9,7 @@ uniform vec2 u_pos;
 uniform float u_zoom;
 
 // the texCoords passed in from the vertex shader.
-in vec2 v_texcoord;
+in vec2 v_uv;
 
 out vec4 fragColor;
 
@@ -105,8 +105,8 @@ void drawStar(float pos_noise, float color_noise){
 void main(){
     float scale = exp(floor(log(u_zoom)));
     vec2 v_worldcoord;
-    v_worldcoord.x=v_texcoord.x*u_resolution.x;
-    v_worldcoord.y=(1.-v_texcoord.y)*u_resolution.y; // pixels on screen
+    v_worldcoord.x=v_uv.x*u_resolution.x;
+    v_worldcoord.y=(1.-v_uv.y)*u_resolution.y; // pixels on screen
     v_worldcoord-=u_pos; // pixels on cam pos
     v_worldcoord=v_worldcoord/u_zoom; // pixels with cam zoom
     v_worldcoord=rotate(v_worldcoord,u_rot); // pixels with cam rotation
@@ -115,7 +115,7 @@ void main(){
     float pos_noise=snoise(v_worldcoord/8.*scale);
     float color_noise=snoise(v_worldcoord/30.*scale);
 
-    vec4 tex=texture(u_image,v_texcoord);
+    vec4 tex=texture(u_image,v_uv);
     float sum=tex.r+tex.g+tex.b;
 
     if(sum<.5) drawStar(pos_noise,color_noise);
