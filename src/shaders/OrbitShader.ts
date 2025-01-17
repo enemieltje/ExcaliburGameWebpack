@@ -24,25 +24,54 @@ class OrbitShader implements PostProcessor {
 		this.orbits[name] = orbit;
 	}
 
+	clearOrbits() {
+		// Object.values(this.orbits).forEach((orbit, i) => {
+		// 	if (i >= 20) return;
+		// 	this.getShader().setUniform(
+		// 		"uniform4fv",
+		// 		`u_orbit[${i}]`,
+		// 		[0, 0, 0, 0,]
+		// 	);
+		// });
+		this.orbits = {}
+
+	}
+
 	onUpdate() {
-		Object.values(this.orbits).forEach((orbit, i) => {
-			if (i >= 20) return;
-			this.getShader().setUniform(
-				"uniform4fv",
-				`u_orbit[${i}]`,
-				[
-					orbit.pos.x,
-					orbit.pos.y,
-					orbit.a,
-					orbit.b,
-				]
-			);
-			this.getShader().setUniform(
-				"uniform1f",
-				`u_rot[${i}]`,
-				this.rotation - orbit.rotation
-			);
-		});
+		const orbitArray = Object.values(this.orbits)
+		for (let i = 0; i < 20; i++) {
+			// Object.values(this.orbits).forEach((orbit, i) => {
+			// if (i >= 20) return;
+			const orbit = orbitArray[i]
+			if (orbit) {
+				this.getShader().setUniform(
+					"uniform4fv",
+					`u_orbit[${i}]`,
+					[
+						orbit.pos.x,
+						orbit.pos.y,
+						orbit.a,
+						orbit.b,
+					]
+				);
+				this.getShader().setUniform(
+					"uniform1f",
+					`u_rot[${i}]`,
+					this.rotation - orbit.rotation
+				);
+			} else {
+				this.getShader().setUniform(
+					"uniform4fv",
+					`u_orbit[${i}]`,
+					[0, 0, 0, 0,]
+				);
+				this.getShader().setUniform(
+					"uniform1f",
+					`u_rot[${i}]`,
+					0
+				);
+			}
+		};
 		this.getShader().setUniform("uniform1f", "u_zoom", this.zoom);
 	}
 

@@ -41,12 +41,14 @@ export class Player extends MovingObject {
 
 	zoomCam(evt: WheelEvent) {
 		// console.log(evt);
+		if (!this.scene.isCurrentScene()) return
 		if (!this.cam) return;
 		this.cam.setZoom(-evt.deltaY / 400);
 		// console.log(evt.deltaY, this.cam.camera.zoom);
 	}
 
 	resolveKeys() {
+
 		if (!this.autopilot) {
 			this.autopilot = new Autopilot(this);
 			this.autopilot.setMode(AutopilotMode.Rotation);
@@ -58,7 +60,7 @@ export class Player extends MovingObject {
 		let kbForce = vec(0, 0);
 		// this.forces.keyboard = vec(0, 0);
 		this.torques.keyboard = 0;
-		this.keyList.forEach(key => {
+		this.keyList.forEach((key, i) => {
 			switch (key) {
 				case Keys.W:
 				case Keys.Up:
@@ -107,6 +109,10 @@ export class Player extends MovingObject {
 						// if (this.engine.type == "ClientEngine") console.log(this.cam!.getMode());
 					}
 					break;
+				case Keys.Escape:
+					if (this.lastKeyList.includes(Keys.Escape)) break;
+					this.engine.goToScene("menu")
+					break
 			}
 		});
 		// if (this.forces.keyboard.size > 0) {

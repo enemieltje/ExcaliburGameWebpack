@@ -18,6 +18,7 @@ export class Planet extends MovingObject {
 			radius: config?.radius || 2000,
 			color: Color.Gray,
 		});
+		this.name = "planet" + this.id
 		this.type = ObjectType.Planet;
 		this.body.mass = Math.PI * (this.width / 2) * (this.width / 2) * 10;
 		this.addName();

@@ -1,17 +1,20 @@
 
 import { WsMessage } from "./utils/types";
 import { GameObject } from "./utils/baseObjects/GameObject";
-import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext } from "excalibur";
+import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext, Scene, GoToOptions } from "excalibur";
 import { Player } from "./objects/Player";
 import { orbitShader } from "./shaders/OrbitShader";
 import { starShader } from "./shaders/StarShader";
 import { Planet } from "./objects/Planet";
+import { Menu } from "./scenes/Menu";
+import { SolarSystem } from "./scenes/SolarSystem";
 
 export class GameEngine extends Engine {
 	objects = new Map<string, GameObject>();
 	ws?: WebSocket;
 	player?: Player;
 	elapsedMs: number = 0;
+	lastScene: string;
 
 	constructor(ws?: WebSocket) {
 
@@ -34,6 +37,11 @@ export class GameEngine extends Engine {
 		});
 	}
 
+	goToScene<TData = undefined>(destinationScene: any, options?: GoToOptions<TData>): Promise<void> {
+		this.lastScene = this.currentSceneName
+		return super.goToScene(destinationScene, options)
+	}
+
 	send(wsMessage: WsMessage) {
 		if (!this.ws) return
 		if (this.ws.readyState == 1) this.ws.send(JSON.stringify(wsMessage));
@@ -44,12 +52,22 @@ export class GameEngine extends Engine {
 	}
 
 	onPostStart() {
+
+		this.add("menu", new Menu())
+		this.goToScene("menu")
+		this.loadSaves()
+		// this.addSolarSystem();
+		// this.addPlayer();
+		// this.addHUD();
 		this.addBackground();
-		this.addSolarSystem();
-		this.addPlayer();
-		this.addHUD();
 		this.addPostProcessor();
 		this.save()
+	}
+
+	loadSaves() {
+		for (let i = 0; i < 3; i++) {
+			this.add(`save${i}`, new SolarSystem())
+		}
 	}
 
 	save() {
@@ -146,6 +164,7 @@ export class GameEngine extends Engine {
 
 	onPostUpdate(engine: Engine, elapsedMs: number): void {
 		super.onPostUpdate(engine, elapsedMs)
-		this.elapsedMs += elapsedMs
+		// this.elapsedMs += elapsedMs
+		// console.debug(this.elapsedMs)
 	}
 }
