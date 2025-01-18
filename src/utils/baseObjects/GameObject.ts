@@ -1,5 +1,5 @@
 import * as ex from "excalibur";
-import { ObjectType } from "../ObjectType";
+import { ObjectType } from "../types";
 import { GameEngine } from "../../GameEngine";
 import { Actor, ActorArgs, Keys, Engine } from "excalibur";
 
@@ -27,6 +27,8 @@ export class GameObject extends ex.Actor {
 			pos: { x: this.pos.x, y: this.pos.y },
 		}
 	}
+
+	onPostLoad() { }
 
 	toString() {
 		return JSON.stringify(this.saveData(), undefined, "\t")

@@ -1,5 +1,5 @@
 import { GameObject } from "./utils/baseObjects/GameObject";
-import { ObjectType } from "./utils/ObjectType";
+import { ObjectType } from "./utils/types";
 import { MovingObject } from "./utils/baseObjects/MovingObject";
 import { Camera } from "excalibur";
 

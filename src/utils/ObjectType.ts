@@ -1,6 +1,6 @@
-export enum ObjectType {
-	"GameObject",
-	"MovingObject",
-	"Player",
-	"Planet",
-}
+// export enum ObjectType {
+// 	"GameObject",
+// 	"MovingObject",
+// 	"Player",
+// 	"Planet",
+// }

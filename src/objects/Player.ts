@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { MovingObject } from "../utils/baseObjects/MovingObject";
 
-import { ObjectType } from "../utils/ObjectType";
+import { ObjectType, ObjectSaveData, Orbit } from "../utils/types";
 import { Arrow } from "./Arrow";
 import { Autopilot, AutopilotMode } from "../Autopilot";
 import { MyCamera, CameraMode } from "../Camera";
@@ -31,6 +31,24 @@ export class Player extends MovingObject {
 		this.speed = this.body.mass * 30;
 
 		this.addName();
+	}
+
+	static fromSaveData(engine: GameEngine, saveData: ObjectSaveData) {
+		const player = new Player(engine, {
+			name: saveData.name
+		})
+		player.pos = vec(saveData.pos.x, saveData.pos.y)
+		player.propagator = saveData.propagator
+
+		// Doesn't do velocity
+		const orbit = saveData.lastKnownOrbit
+		const centralBody = engine.objects.get(orbit.centralBody)
+		player.lastKnownOrbit = new Orbit(centralBody, orbit.a, vec(orbit.e.x, orbit.e.y))
+
+		player.controls = true;
+		player.color = Color.Chartreuse;
+
+		return player
 	}
 
 	start(): void {
@@ -111,6 +129,7 @@ export class Player extends MovingObject {
 					break;
 				case Keys.Escape:
 					if (this.lastKeyList.includes(Keys.Escape)) break;
+					this.engine.save()
 					this.engine.goToScene("menu")
 					break
 			}

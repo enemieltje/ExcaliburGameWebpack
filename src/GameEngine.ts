@@ -1,5 +1,5 @@
 
-import { WsMessage } from "./utils/types";
+import { GameSaveData, ObjectSaveData, WsMessage } from "./utils/types";
 import { GameObject } from "./utils/baseObjects/GameObject";
 import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext, Scene, GoToOptions } from "excalibur";
 import { Player } from "./objects/Player";
@@ -65,18 +65,43 @@ export class GameEngine extends Engine {
 	}
 
 	loadSaves() {
+
 		for (let i = 0; i < 3; i++) {
-			this.add(`save${i}`, new SolarSystem())
+			const solarSystem = new SolarSystem()
+
+			const saveData = JSON.parse(this.getCookie(`save${i}`)) as GameSaveData
+			console.debug(saveData)
+			solarSystem.saveData = saveData
+
+			this.add(`save${i}`, solarSystem)
 		}
+
+	}
+
+
+
+	getCookie(name: string) {
+		let cookie = ""
+		const nameEQ = `${name}=`;
+		const ca = document.cookie.split(';');
+		for (let i = 0; i < ca.length; i++) {
+			let c = ca[i].trim();
+			if (c.indexOf(nameEQ) == 0) cookie = c.substring(nameEQ.length, c.length);
+		}
+		console.debug(`Cookie: ${cookie}`)
+		return cookie || "[]"
 	}
 
 	save() {
-		let saveData = ""
+		const saveData = { elapsedMs: this.elapsedMs, objects: [] }
 		this.objects.forEach((object) => {
-			saveData += (object.toString())
+			saveData.objects.push(object.saveData())
 		})
 		console.debug(saveData)
-		return saveData
+
+		const saveString = JSON.stringify(saveData, undefined, "\t")
+		const cookie = `${this.currentSceneName}=${JSON.stringify(saveData)}; path=/`;
+		document.cookie = cookie
 	}
 
 	addPostProcessor() {
@@ -84,72 +109,72 @@ export class GameEngine extends Engine {
 		this.graphicsContext.addPostProcessor(starShader);
 	}
 
-	addHUD() {
-		const hud = new ScreenElement({
-			x: 10,
-			y: 30,
-			z: 10,
-			width: 500,
-			height: 500,
-		});
-		const text = new Text({
-			text: "STARTING...",
-			font: new Font({ size: 30 }),
-			color: Color.White,
-		});
-		hud.graphics.use(text);
-		this.add(hud);
+	// addHUD() {
+	// 	const hud = new ScreenElement({
+	// 		x: 10,
+	// 		y: 30,
+	// 		z: 10,
+	// 		width: 500,
+	// 		height: 500,
+	// 	});
+	// 	const text = new Text({
+	// 		text: "STARTING...",
+	// 		font: new Font({ size: 30 }),
+	// 		color: Color.White,
+	// 	});
+	// 	hud.graphics.use(text);
+	// 	this.add(hud);
 
-		this.currentScene.on("postupdate", event => {
-			const fps = event.engine.stats.currFrame.fps;
-			const camMode = this.player?.cam?.getMode();
-			const pilotMode = this.player?.autopilot?.getMode();
-			text.text = `FPS: ${Math.floor(fps)}\nCAM: ${camMode}\nPILOT: ${pilotMode}`;
-		});
-	}
+	// 	this.currentScene.on("postupdate", event => {
+	// 		const fps = event.engine.stats.currFrame.fps;
+	// 		const camMode = this.player?.cam?.getMode();
+	// 		const pilotMode = this.player?.autopilot?.getMode();
+	// 		text.text = `FPS: ${Math.floor(fps)}\nCAM: ${camMode}\nPILOT: ${pilotMode}`;
+	// 	});
+	// }
 
 	addBackground() {
 		if (!this.ready) return;
 		this.backgroundColor = Color.Black;
 	}
 
-	addPlayer() {
-		if (!this.ready) return;
+	// addPlayer() {
+	// 	if (!this.ready) return;
 
-		const player = new Player(this);
-		player.controls = true;
-		player.color = Color.Chartreuse;
-		this.player = player;
+	// 	const player = new Player(this);
+	// 	player.controls = true;
+	// 	player.color = Color.Chartreuse;
+	// 	this.player = player;
 
-		const username = player.name;
-		this.objects.set(username, player);
-		this.add(player);
-		// player.lockCamera(this.currentScene.camera);
+	// 	const username = player.name;
+	// 	this.objects.set(username, player);
+	// 	this.add(player);
+	// 	// player.lockCamera(this.currentScene.camera);
 
-		this.send({
-			type: "join",
-			content: { username },
-		});
-	}
+	// 	this.send({
+	// 		type: "join",
+	// 		content: { username },
+	// 	});
+	// }
 
-	addSolarSystem() {
-		const sol = new Planet(this, { radius: 2000 });
-		const merc = sol.createSatellite(200, 50000, Math.PI);
-		const earth = sol.createSatellite(500, 160000);
-		const mun = earth.createSatellite(100, 3000, -Math.PI / 2);
+	// addSolarSystem() {
+	// 	const sol = new Planet(this, { radius: 2000 });
+	// 	const merc = sol.createSatellite(200, 50000, Math.PI);
+	// 	const earth = sol.createSatellite(500, 160000);
+	// 	const mun = earth.createSatellite(100, 3000, -Math.PI / 2);
 
-		console.log(earth.pos.toString());
+	// 	console.log(earth.pos.toString());
 
-		this.addObject(sol);
-		this.addObject(merc);
-		this.addObject(earth);
-		this.addObject(mun);
-	}
+	// 	this.addObject(sol);
+	// 	this.addObject(merc);
+	// 	this.addObject(earth);
+	// 	this.addObject(mun);
+	// }
 
-	addObject(object: GameObject) {
-		this.add(object);
-		this.objects.set(object.name, object);
-	}
+	// addObject(object: GameObject) {
+	// 	this.add(object);
+	// 	this.objects.set(object.name, object);
+	// }
 
 	onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
 		super.onPreDraw(ctx, elapsedMs);

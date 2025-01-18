@@ -1,4 +1,4 @@
-import { ObjectType } from "../ObjectType";
+import { ObjectSaveData, ObjectType } from "../types";
 import { GameObject } from "./GameObject";
 import { GameEngine } from "../../GameEngine";
 import { Arrow } from "../../objects/Arrow";
@@ -12,6 +12,7 @@ export class MovingObject extends GameObject {
 	torques: Record<string, number> = {};
 	propagator: Propagator = "Kepler";
 	lastKnownOrbit: Orbit;
+	loadData?: ObjectSaveData
 
 	constructor(engine: GameEngine, config?: ActorArgs) {
 		super(engine, config);
@@ -24,6 +25,21 @@ export class MovingObject extends GameObject {
 		// console.debug(
 		// 	`name: ${this.name}`,
 		// 	`lastKnownOrbit: ${this.lastKnownOrbit?.planet?.name}`)
+	}
+
+	onPostLoad() {
+		console.debug(`onPostLoad: ${this.name}`)
+		if (!this.loadData) return
+		console.debug(`has loadData`)
+		const orbit = this.loadData.lastKnownOrbit
+		if (orbit) {
+			console.debug(`has orbit`)
+			console.debug(`centralBody: ${orbit.centralBody}`)
+			const centralBody = this.engine.objects.get(orbit.centralBody)
+			console.debug(`centralBody: ${centralBody.name}`)
+			this.lastKnownOrbit = new Orbit(centralBody, orbit.a, vec(orbit.e.x, orbit.e.y))
+		}
+		delete this.loadData
 	}
 
 	saveData() {

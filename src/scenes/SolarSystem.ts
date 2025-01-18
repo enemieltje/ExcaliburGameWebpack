@@ -4,21 +4,52 @@ import { Player } from "@/objects/Player";
 import { orbitShader } from "@/shaders/OrbitShader";
 import { starShader } from "@/shaders/StarShader";
 import { GameObject } from "@/utils/baseObjects/GameObject";
-import { Color, Engine, Font, Scene, Text, ScreenElement, SceneActivationContext } from "excalibur";
+import { ObjectType, ObjectSaveData, GameSaveData } from "@/utils/types";
+import { Color, Engine, Font, Scene, Text, ScreenElement, SceneActivationContext, vec } from "excalibur";
+import { copyFileSync } from "fs";
 
 export class SolarSystem extends Scene {
     engine: GameEngine
     elapsedMs: number = 0
     player: Player
     objects = new Map<string, GameObject>();
+    saveData: GameSaveData;
 
     override onInitialize(engine: GameEngine): void {
         this.engine = engine
         // this.addBackground();
-        this.addSolarSystem();
-        this.addPlayer();
         this.addHUD();
         // this.addPostProcessor();
+        // this.startNewSave()
+        if (this.saveData.objects) this.loadSaveData()
+        else this.startNewSave()
+    }
+
+    startNewSave() {
+        console.debug("Starting new Save")
+        this.addSolarSystem();
+        this.addPlayer();
+    }
+
+    loadSaveData() {
+        console.debug("Loading save")
+        this.elapsedMs = this.saveData.elapsedMs
+        this.saveData.objects.forEach((objectSaveData) => (this.loadObject(objectSaveData)))
+        this.engine.objects = this.objects
+        this.objects.forEach((object) => { object.onPostLoad() })
+    }
+
+    loadObject(objectSaveData: ObjectSaveData) {
+        let object: GameObject
+        switch (objectSaveData.type) {
+            case (ObjectType.Planet):
+                object = Planet.fromSaveData(this.engine, objectSaveData)
+                break
+            case (ObjectType.Player):
+                object = Player.fromSaveData(this.engine, objectSaveData)
+                break
+        }
+        this.addObject(object)
     }
 
     addPostProcessor() {
@@ -56,7 +87,7 @@ export class SolarSystem extends Scene {
         player.color = Color.Chartreuse;
         this.player = player;
 
-        this.add(player);
+        this.addObject(player);
     }
 
     addSolarSystem() {
@@ -72,6 +103,7 @@ export class SolarSystem extends Scene {
     }
 
     addObject(object: GameObject) {
+        console.debug(`addObject: ${object.name}`)
         this.add(object);
         this.objects.set(object.name, object);
     }

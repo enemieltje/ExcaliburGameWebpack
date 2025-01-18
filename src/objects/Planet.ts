@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { ObjectType } from "../utils/ObjectType";
+import { ObjectType, ObjectSaveData } from "../utils/types";
 import { MovingObject } from "../utils/baseObjects/MovingObject";
 import { GameEngine } from "../GameEngine";
 import { ActorArgs, randomIntInRange, vec, Color, Engine, CollisionType, Vector } from "excalibur";
@@ -21,7 +21,19 @@ export class Planet extends MovingObject {
 		this.name = "planet" + this.id
 		this.type = ObjectType.Planet;
 		this.body.mass = Math.PI * (this.width / 2) * (this.width / 2) * 10;
+		// this.lastKnownOrbit = new Orbit(this, 0, Vector.Zero)
 		this.addName();
+	}
+
+	static fromSaveData(engine: GameEngine, saveData: ObjectSaveData): Planet {
+		const planet = new Planet(engine, {
+			name: saveData.name,
+			pos: vec(saveData.pos.x, saveData.pos.y),
+			radius: Math.sqrt(saveData.mass / Math.PI / 10)
+		})
+		planet.loadData = saveData
+
+		return planet
 	}
 
 	createSatellite(radius: number, r: number, angle = 0, mass?: number) {

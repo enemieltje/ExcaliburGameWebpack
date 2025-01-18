@@ -7,12 +7,40 @@ import { GameObject } from "./baseObjects/GameObject";
 // 	type: string;
 // 	content: T;
 // }
+
+export enum ObjectType {
+	"GameObject",
+	"MovingObject",
+	"Player",
+	"Planet",
+}
+
 export interface WsMessage {
 	type: string;
 	content: unknown;
 }
 
 export type Propagator = "Kepler" | "Step"
+
+export type GameSaveData = {
+	elapsedMs: number,
+	objects: ObjectSaveData[]
+}
+
+export type ObjectSaveData = {
+	name: string,
+	type: ObjectType,
+	pos: { x: number, y: number },
+	mass?: number,
+	lastKnownOrbit?: OrbitSaveData,
+	propagator?: Propagator
+}
+
+export type OrbitSaveData = {
+	centralBody: string,
+	a: number,
+	e: { x: number, y: number }
+}
 
 export type ShaderOrbit = {
 	rotation: number;
