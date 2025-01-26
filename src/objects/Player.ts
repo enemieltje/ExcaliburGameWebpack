@@ -145,14 +145,14 @@ export class Player extends MovingObject {
 		if (!this.forces.keyboard?.equals(kbForce) && this.controls) {
 			this.forces.keyboard = kbForce;
 			// console.log(kbForce.toString());
-			this.engine.send({
-				type: "input",
-				content: {
-					name: this.name,
-					type: "kbForce",
-					content: { x: kbForce.x, y: kbForce.y },
-				},
-			});
+			// this.engine.send({
+			// 	type: "input",
+			// 	content: {
+			// 		name: this.name,
+			// 		type: "kbForce",
+			// 		content: { x: kbForce.x, y: kbForce.y },
+			// 	},
+			// });
 		}
 	}
 
@@ -184,13 +184,13 @@ export class Player extends MovingObject {
 
 	sendKeys() {
 		if (this.keyList.toString() == this.lastKeyList.toString()) return;
-		this.engine.send({
-			type: "input",
-			content: {
-				name: this.name,
-				type: "keys",
-				content: this.keyList,
-			},
-		});
+		// this.engine.send({
+		// 	type: "input",
+		// 	content: {
+		// 		name: this.name,
+		// 		type: "keys",
+		// 		content: this.keyList,
+		// 	},
+		// });
 	}
 }

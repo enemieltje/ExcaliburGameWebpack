@@ -3,6 +3,7 @@ test/images/diff-*.png
 
 # Generated files
 dist/
+server.js
 
 # Logs
 logs

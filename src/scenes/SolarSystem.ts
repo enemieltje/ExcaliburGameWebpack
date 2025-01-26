@@ -12,13 +12,14 @@ export class SolarSystem extends Scene {
     engine: GameEngine
     elapsedMs: number = 0
     player: Player
-    objects = new Map<string, GameObject>();
+    objects: Map<string, GameObject>;
     saveData: GameSaveData;
 
     override onInitialize(engine: GameEngine): void {
         this.engine = engine
         // this.addBackground();
         this.addHUD();
+        this.objects = new Map()
         // this.addPostProcessor();
         // this.startNewSave()
         if (this.saveData.objects) this.loadSaveData()
@@ -33,6 +34,10 @@ export class SolarSystem extends Scene {
 
     loadSaveData() {
         console.debug("Loading save")
+        // this.objects.clear()
+        // this.objects = new Map<string, GameObject>();
+        // console.debug(this.saveData)
+        // console.debug(this.objects)
         this.elapsedMs = this.saveData.elapsedMs
         this.saveData.objects.forEach((objectSaveData) => (this.loadObject(objectSaveData)))
         this.engine.objects = this.objects
@@ -113,6 +118,10 @@ export class SolarSystem extends Scene {
     }
 
     override onActivate(context: SceneActivationContext<unknown>): void {
+
+        // if (this.saveData.objects) this.loadSaveData()
+        // else this.startNewSave()
+
         this.engine.objects = new Map<string, GameObject>();
         this.engine.objects = this.objects
         orbitShader.clearOrbits()

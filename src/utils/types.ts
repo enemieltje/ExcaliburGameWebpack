@@ -15,11 +15,6 @@ export enum ObjectType {
 	"Planet",
 }
 
-export interface WsMessage {
-	type: string;
-	content: unknown;
-}
-
 export type Propagator = "Kepler" | "Step"
 
 export type GameSaveData = {

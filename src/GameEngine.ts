@@ -1,13 +1,16 @@
 
-import { GameSaveData, ObjectSaveData, WsMessage } from "./utils/types";
+import { GameSaveData, ObjectSaveData } from "./utils/types";
 import { GameObject } from "./utils/baseObjects/GameObject";
-import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext, Scene, GoToOptions } from "excalibur";
+import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext, Scene, GoToOptions, PointerScope } from "excalibur";
 import { Player } from "./objects/Player";
 import { orbitShader } from "./shaders/OrbitShader";
 import { starShader } from "./shaders/StarShader";
 import { Planet } from "./objects/Planet";
 import { Menu } from "./scenes/Menu";
 import { SolarSystem } from "./scenes/SolarSystem";
+import { Multiplayer } from "./scenes/Multiplayer";
+import { WsMessage } from "./utils/serverTypes";
+import { NewServer } from "./scenes/NewServer";
 
 export class GameEngine extends Engine {
 	objects = new Map<string, GameObject>();
@@ -26,6 +29,8 @@ export class GameEngine extends Engine {
 				solver: SolverStrategy.Realistic,
 				substep: 5 // Sub step the physics simulation for more robust simulations
 			},
+			canvasElementId: 'game',
+			pointerScope: PointerScope.Canvas,
 		});
 
 		this.ws = ws;
@@ -53,9 +58,9 @@ export class GameEngine extends Engine {
 
 	onPostStart() {
 
-		this.add("menu", new Menu())
-		this.goToScene("menu")
+		this.loadScenes()
 		this.loadSaves()
+		this.goToScene("menu")
 		// this.addSolarSystem();
 		// this.addPlayer();
 		// this.addHUD();
@@ -78,7 +83,11 @@ export class GameEngine extends Engine {
 
 	}
 
-
+	loadScenes() {
+		this.add("menu", new Menu())
+		this.add(`Multiplayer`, new Multiplayer())
+		this.add(`New Server`, new NewServer())
+	}
 
 	getCookie(name: string) {
 		let cookie = ""
