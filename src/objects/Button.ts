@@ -39,7 +39,8 @@ export class Button extends Actor {
             }),
             width: this.width,
             height: this.height,
-            pos: vec(this.width / 2, this.height / 2 - size / 2)
+            pos: vec(this.width / 2, this.height / 2 - size / 2),
+            color: Color.Black
             // anchor: Vector.One.scale(-0.5)
         });
 

@@ -33,17 +33,15 @@ export class Player extends MovingObject {
 		this.addName();
 	}
 
-	static fromSaveData(engine: GameEngine, saveData: ObjectSaveData) {
+	static fromSaveData(engine: GameEngine, saveData: ObjectSaveData): Player {
 		const player = new Player(engine, {
 			name: saveData.name
 		})
 		player.pos = vec(saveData.pos.x, saveData.pos.y)
+		player.vel = vec(saveData.vel?.x, saveData.vel?.y)
 		player.propagator = saveData.propagator
 
-		// Doesn't do velocity
-		const orbit = saveData.lastKnownOrbit
-		const centralBody = engine.objects.get(orbit.centralBody)
-		player.lastKnownOrbit = new Orbit(centralBody, orbit.a, vec(orbit.e.x, orbit.e.y))
+		player.loadData = saveData
 
 		player.controls = true;
 		player.color = Color.Chartreuse;

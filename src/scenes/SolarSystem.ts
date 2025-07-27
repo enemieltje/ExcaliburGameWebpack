@@ -1,11 +1,12 @@
 import { GameEngine } from "@/GameEngine";
+import { Background } from "@/objects/Background";
 import { Planet } from "@/objects/Planet";
 import { Player } from "@/objects/Player";
 import { orbitShader } from "@/shaders/OrbitShader";
-import { starShader } from "@/shaders/StarShader";
+import { starShader } from "@/shaders/PerlinShader";
 import { GameObject } from "@/utils/baseObjects/GameObject";
 import { ObjectType, ObjectSaveData, GameSaveData } from "@/utils/types";
-import { Color, Engine, Font, Scene, Text, ScreenElement, SceneActivationContext, vec } from "excalibur";
+import { Color, Engine, Font, Scene, Text, ScreenElement, SceneActivationContext, vec, Vector } from "excalibur";
 import { copyFileSync } from "fs";
 
 export class SolarSystem extends Scene {
@@ -28,8 +29,12 @@ export class SolarSystem extends Scene {
 
     startNewSave() {
         console.debug("Starting new Save")
-        this.addSolarSystem();
+        this.addDebugSolarSystem()
+        // this.addSolarSystem();
         this.addPlayer();
+        this.player.pos = vec(400, 300)
+        // this.player.color = new Color(0, 255, 255, 0)
+        // this.player.graphics.hide()
     }
 
     loadSaveData() {
@@ -52,15 +57,16 @@ export class SolarSystem extends Scene {
                 break
             case (ObjectType.Player):
                 object = Player.fromSaveData(this.engine, objectSaveData)
+                this.player = object as Player;
                 break
         }
         this.addObject(object)
     }
 
-    addPostProcessor() {
-        this.engine.graphicsContext.addPostProcessor(orbitShader);
-        this.engine.graphicsContext.addPostProcessor(starShader);
-    }
+    // addPostProcessor() {
+    //     this.engine.graphicsContext.addPostProcessor(orbitShader);
+    //     this.engine.graphicsContext.addPostProcessor(starShader);
+    // }
 
     addHUD() {
         const hud = new ScreenElement({
@@ -82,7 +88,9 @@ export class SolarSystem extends Scene {
             const fps = event.engine.stats.currFrame.fps;
             const camMode = this.player?.cam?.getMode();
             const pilotMode = this.player?.autopilot?.getMode();
-            text.text = `FPS: ${Math.floor(fps)}\nCAM: ${camMode}\nPILOT: ${pilotMode}`;
+            const pos = this.player?.pos
+            const zoom = this.player?.engine.currentScene.camera.zoom
+            text.text = `FPS: ${Math.floor(fps)}\nCAM: ${camMode}\nPILOT: ${pilotMode}\nPOS: ${pos?.x.toFixed(0)}, ${pos?.y.toFixed(0)}\nZOOM: ${zoom}`;
         });
     }
 
@@ -93,6 +101,13 @@ export class SolarSystem extends Scene {
         this.player = player;
 
         this.addObject(player);
+    }
+
+    addDebugSolarSystem() {
+        const sol = new Planet(this.engine, { radius: 100 });
+        // sol.body.mass = 0.01
+        this.addObject(sol);
+
     }
 
     addSolarSystem() {
@@ -114,7 +129,8 @@ export class SolarSystem extends Scene {
     }
 
     addBackground() {
-        this.backgroundColor = Color.Black;
+        const background = new Background(this.engine)
+        this.add(background)
     }
 
     override onActivate(context: SceneActivationContext<unknown>): void {

@@ -43,8 +43,10 @@ export class MovingObject extends GameObject {
 	}
 
 	saveData() {
+		console.debug(`Name: ${this.name}, vel: ${this.vel.magnitude}, angle: ${this.vel.toAngle()}`)
 		return {
 			...super.saveData(),
+			vel: { x: this.vel.x, y: this.vel.y },
 			mass: this.body.mass,
 			lastKnownOrbit: this.getOrbit()?.saveData(),
 			propagator: this.propagator

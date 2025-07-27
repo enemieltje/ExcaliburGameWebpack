@@ -1,4 +1,5 @@
 import { GameEngine } from "@/GameEngine";
+import { Background } from "@/objects/Background";
 import { Button } from "@/objects/Button";
 import { WsMessageType } from "@/utils/serverTypes";
 import { Engine, Keys, Scene, vec, Vector } from "excalibur";
@@ -27,6 +28,12 @@ export class MenuScene extends Scene {
             engine.drawHeight * (1 / 6),
         )
         this.createWebSocket()
+        // this.addBackground()
+    }
+
+    addBackground() {
+        const background = new Background(this.engine)
+        this.engine.add(background)
     }
 
     createButtons() {

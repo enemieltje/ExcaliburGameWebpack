@@ -3,10 +3,9 @@ precision mediump float;
 
 // our texture
 uniform sampler2D u_image;
+uniform float u_threshold;
+uniform mat3 u_transmat;
 uniform vec2 u_resolution;
-uniform float u_rot;
-uniform vec2 u_pos;
-uniform float u_zoom;
 
 // the texCoords passed in from the vertex shader.
 in vec2 v_uv;
@@ -72,53 +71,34 @@ float snoise(vec2 v)
     return .5+.5*(130.*dot(m,g));
 }
 
-vec2 rotate(vec2 v_in,float angle){
-    vec2 v_out;
-    v_out.x=v_in.x*cos(angle)-(v_in.y*sin(angle));
-    v_out.y=v_in.x*sin(angle)+(v_in.y*cos(angle));
-    return v_out;
-}
 
-// https://www.desmos.com/calculator/b4qgzzxzx6
-float bbr(float value, float scale, float pos){
-    float a = value/scale - pos;
-    return -2.7*a*exp(a);
-}
+float perlin_value(float pos_noise){
 
-vec4 getColor(float temp){
-    vec4 color;
-    color.r = bbr(temp, 0.7, 1.6);
-    color.g = bbr(temp, 0.4, 2.7);
-    color.b = bbr(temp, 0.25, 5.);
-    color.w = 1.;
-    return color;
-}
-
-void drawStar(float pos_noise, float color_noise){
-    vec4 color = getColor(color_noise);
-    if(pos_noise>.98){
-        fragColor+=color;
-    }else fragColor=vec4(0,0,0,1.);
-    // fragColor=color;
+    if(pos_noise>u_threshold){
+        return 1.;
+    }else return 0.;
 }
 
 void main(){
-    float scale = exp(floor(log(u_zoom)));
     vec2 v_worldcoord;
-    v_worldcoord.x=v_uv.x*u_resolution.x;
-    v_worldcoord.y=(1.-v_uv.y)*u_resolution.y; // pixels on screen
-    v_worldcoord-=u_pos; // pixels on cam pos
-    v_worldcoord=v_worldcoord/u_zoom; // pixels with cam zoom
-    v_worldcoord=rotate(v_worldcoord,u_rot); // pixels with cam rotation
-    v_worldcoord=floor(v_worldcoord);
 
-    float pos_noise=snoise(v_worldcoord/8.*scale);
-    float color_noise=snoise(v_worldcoord/30.*scale);
+    v_worldcoord = (u_transmat * vec3(v_uv, 1.)).xy;
+    // v_worldcoord = floor(v_worldcoord);
+
+    float zoom = u_resolution.x/length(vec2(u_transmat[0][0], u_transmat[1][0]));
+
+    float scale = exp(floor(log(zoom)));
+
+    float pos_noise=snoise(v_worldcoord/20.*scale);
+    float value = perlin_value(pos_noise);
 
     vec4 tex=texture(u_image,v_uv);
-    float sum=tex.r+tex.g+tex.b;
+    float temperature = tex.r;
+    float brightness = tex.g;
+    bool is_background = tex.b == 1./255.;
 
-    if(sum<.5) drawStar(pos_noise,color_noise);
+    if(is_background)
+        fragColor = vec4(tex.r,max(brightness, value), tex.b, 1.);
     else fragColor=vec4(tex.r,tex.g,tex.b,1.);
 }
 

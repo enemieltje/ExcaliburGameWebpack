@@ -4,13 +4,20 @@ import { GameObject } from "./utils/baseObjects/GameObject";
 import { Color, Text, DisplayMode, SolverStrategy, Engine, Font, ScreenElement, vec, ExcaliburGraphicsContext, Scene, GoToOptions, PointerScope } from "excalibur";
 import { Player } from "./objects/Player";
 import { orbitShader } from "./shaders/OrbitShader";
-import { starShader } from "./shaders/StarShader";
+import { PerlinShader, starShader } from "./shaders/PerlinShader";
 import { Planet } from "./objects/Planet";
 import { Menu } from "./scenes/Menu";
 import { SolarSystem } from "./scenes/SolarSystem";
 import { Multiplayer } from "./scenes/Multiplayer";
 import { WsMessage } from "./utils/serverTypes";
 import { NewServer } from "./scenes/NewServer";
+import { dilationShader } from "./shaders/DilationShader";
+import { erosionShader } from "./shaders/ErosionShader";
+import { ColorShader, colorShader } from "./shaders/ColorShader";
+import { flareShader } from "./shaders/FlareShader";
+import { TemperatureShader, temperatureShader } from "./shaders/TemperatureShader";
+import { blurShader } from "./shaders/BlurShader";
+import { streakShader } from "./shaders/StreakShader";
 
 export class GameEngine extends Engine {
 	objects = new Map<string, GameObject>();
@@ -18,6 +25,13 @@ export class GameEngine extends Engine {
 	player?: Player;
 	elapsedMs: number = 0;
 	lastScene: string;
+	perlinShaders = {
+		"99": starShader(0.995),
+		"98": starShader(0.98),
+		"96": starShader(0.96),
+		"95": starShader(0.95),
+		"90": starShader(0.90),
+	}
 
 	constructor(ws?: WebSocket) {
 
@@ -25,6 +39,8 @@ export class GameEngine extends Engine {
 			width: window.innerWidth,
 			height: window.innerHeight,
 			displayMode: DisplayMode.FitScreen,
+			// width: 800,
+			// height: 600,
 			physics: {
 				solver: SolverStrategy.Realistic,
 				substep: 5 // Sub step the physics simulation for more robust simulations
@@ -57,6 +73,7 @@ export class GameEngine extends Engine {
 	}
 
 	onPostStart() {
+		// this.graphicsContext.register(new MyCustomRenderer());
 
 		this.loadScenes()
 		this.loadSaves()
@@ -114,85 +131,66 @@ export class GameEngine extends Engine {
 	}
 
 	addPostProcessor() {
+		this.addStarShaders();
 		this.graphicsContext.addPostProcessor(orbitShader);
-		this.graphicsContext.addPostProcessor(starShader);
 	}
 
-	// addHUD() {
-	// 	const hud = new ScreenElement({
-	// 		x: 10,
-	// 		y: 30,
-	// 		z: 10,
-	// 		width: 500,
-	// 		height: 500,
-	// 	});
-	// 	const text = new Text({
-	// 		text: "STARTING...",
-	// 		font: new Font({ size: 30 }),
-	// 		color: Color.White,
-	// 	});
-	// 	hud.graphics.use(text);
-	// 	this.add(hud);
+	addStarShaders() {
 
-	// 	this.currentScene.on("postupdate", event => {
-	// 		const fps = event.engine.stats.currFrame.fps;
-	// 		const camMode = this.player?.cam?.getMode();
-	// 		const pilotMode = this.player?.autopilot?.getMode();
-	// 		text.text = `FPS: ${Math.floor(fps)}\nCAM: ${camMode}\nPILOT: ${pilotMode}`;
-	// 	});
-	// }
+		const res = this.screen.resolution
+		Object.values(this.perlinShaders).forEach(perlinShader => {
+			perlinShader.setResolution(vec(res.width, res.height))
+		});
+		temperatureShader.setResolution(vec(res.width, res.height))
+
+		this.graphicsContext.addPostProcessor(temperatureShader);
+		this.graphicsContext.addPostProcessor(this.perlinShaders[99]);
+		this.graphicsContext.addPostProcessor(dilationShader);
+		// this.graphicsContext.addPostProcessor(flareShader(20));
+
+		this.graphicsContext.addPostProcessor(this.perlinShaders[98]);
+		this.graphicsContext.addPostProcessor(dilationShader);
+		// this.graphicsContext.addPostProcessor(flareShader(10));
+		this.graphicsContext.addPostProcessor(streakShader);
+		this.graphicsContext.addPostProcessor(blurShader(true));
+		this.graphicsContext.addPostProcessor(blurShader(false));
+
+		this.graphicsContext.addPostProcessor(this.perlinShaders[96]);
+		// this.graphicsContext.addPostProcessor(dilationShader);
+		// this.graphicsContext.addPostProcessor(flareShader(2));
+
+
+
+		// this.graphicsContext.addPostProcessor(this.perlinShaders[96]);
+		// this.graphicsContext.addPostProcessor(dilationShader);
+
+		this.graphicsContext.addPostProcessor(colorShader);
+	}
 
 	addBackground() {
 		if (!this.ready) return;
-		this.backgroundColor = Color.Black;
+		this.backgroundColor = new Color(0, 0, 1)
+		// this.backgroundColor = Color.Black;
 	}
-
-	// addPlayer() {
-	// 	if (!this.ready) return;
-
-	// 	const player = new Player(this);
-	// 	player.controls = true;
-	// 	player.color = Color.Chartreuse;
-	// 	this.player = player;
-
-	// 	const username = player.name;
-	// 	this.objects.set(username, player);
-	// 	this.add(player);
-	// 	// player.lockCamera(this.currentScene.camera);
-
-	// 	this.send({
-	// 		type: "join",
-	// 		content: { username },
-	// 	});
-	// }
-
-	// addSolarSystem() {
-	// 	const sol = new Planet(this, { radius: 2000 });
-	// 	const merc = sol.createSatellite(200, 50000, Math.PI);
-	// 	const earth = sol.createSatellite(500, 160000);
-	// 	const mun = earth.createSatellite(100, 3000, -Math.PI / 2);
-
-	// 	console.log(earth.pos.toString());
-
-	// 	this.addObject(sol);
-	// 	this.addObject(merc);
-	// 	this.addObject(earth);
-	// 	this.addObject(mun);
-	// }
-
-	// addObject(object: GameObject) {
-	// 	this.add(object);
-	// 	this.objects.set(object.name, object);
-	// }
 
 	onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
 		super.onPreDraw(ctx, elapsedMs);
+		// temperatureShader
+		// 	.setRotation(-this.currentScene.camera.rotation)
 		orbitShader
 			.setRotation(-this.currentScene.camera.rotation)
-			.setZoom(this.currentScene.camera.zoom);
-		starShader
+			.setZoom(this.currentScene.camera.zoom)
+		dilationShader.setZoom(this.currentScene.camera.zoom)
+		Object.values(this.perlinShaders).forEach((shader) => this.updatePositionMatrix(shader))
+		this.updatePositionMatrix(temperatureShader)
+	}
+
+	updatePositionMatrix(shader: PerlinShader | TemperatureShader) {
+		const res = this.screen.resolution
+		const center = vec(res.width, res.height).scale(0.5)
+		shader
 			.setRotation(-this.currentScene.camera.rotation)
-			.setPos(this.worldToScreenCoordinates(vec(0, 0)))
+			.setPos(this.screenToWorldCoordinates(center))
 			.setZoom(this.currentScene.camera.zoom);
 	}
 

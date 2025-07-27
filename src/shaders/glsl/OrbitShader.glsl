@@ -33,6 +33,18 @@ float get_ellipse(vec2 v_pos,float f_rot,float f_a,float f_b){
     return f_ell;
 }
 
+bool is_not_star(vec4 tex){
+    return tex.b == 1./255.;
+}
+
+bool is_star(vec4 tex){
+    return tex.b == 2./255.;
+}
+
+bool is_background(vec4 tex){
+    return is_star(tex) || is_not_star(tex);
+}
+
 void main(){
 
     vec2 v_screencoord;
@@ -50,7 +62,8 @@ void main(){
     }
 
     vec4 tex=texture(u_image,v_uv);
-    float sum=tex.r+tex.g+tex.b;
-    if(sum<.5) fragColor=vec4(tex.r-f_ell,tex.g-f_ell ,tex.b+f_ell,1.);
-    else fragColor=vec4(tex.r,tex.g,tex.b,1.);
+    // float sum=tex.r+tex.g+tex.b;
+    // if(0.03<=sum && sum<=0.036)
+        fragColor=vec4(tex.r-f_ell,tex.g-f_ell ,tex.b+f_ell,1.);
+    // else fragColor=vec4(tex.r,tex.g,tex.b,1.);
 }

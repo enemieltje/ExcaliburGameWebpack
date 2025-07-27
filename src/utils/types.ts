@@ -26,6 +26,7 @@ export type ObjectSaveData = {
 	name: string,
 	type: ObjectType,
 	pos: { x: number, y: number },
+	vel?: { x: number, y: number },
 	mass?: number,
 	lastKnownOrbit?: OrbitSaveData,
 	propagator?: Propagator
