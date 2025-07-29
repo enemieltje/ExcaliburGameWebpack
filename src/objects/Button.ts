@@ -3,7 +3,7 @@ import { GameObject } from "../utils/baseObjects/GameObject";
 import { GameEngine } from "@/GameEngine";
 
 export class Button extends Actor {
-    namePlate: Actor
+    namePlate: Label
     text: string
 
     constructor(text: string, config: ActorArgs, onClick: (button: Button) => void) {
@@ -17,7 +17,7 @@ export class Button extends Actor {
         });
 
         this.text = text
-        this.addName()
+        this.reloadName()
 
         this.on("pointerenter", () => this.select())
         this.on("pointerleave", () => this.deselect())
@@ -25,13 +25,19 @@ export class Button extends Actor {
             this.graphics.current.opacity = 1
             onClick(this)
         })
-
     }
 
-    addName() {
+    reloadName() {
+        if (this.namePlate) {
+            console.debug(`removing ${this.namePlate.name}`)
+            this.removeChild(this.namePlate)
+            this.scene.remove(this.namePlate)
+            delete this.namePlate
+        }
+        console.debug(`reload name with width ${this.width}`)
         const size = Math.min(this.height / 2, this.width / this.text.length * 2)
         const label = new Label({
-            name: this.name + "namePlate",
+            name: this.name + "_namePlate",
             text: this.text,
             font: new Font({
                 size: size,
@@ -43,7 +49,7 @@ export class Button extends Actor {
             color: Color.Black
             // anchor: Vector.One.scale(-0.5)
         });
-
+        this.namePlate = label;
         this.addChild(label);
     }
 

@@ -16,7 +16,7 @@ export class MenuScene extends Scene {
     buttonData: ({
         text: string,
         callback: (button: Button) => void,
-    })[][]
+    } | null)[][]
     buttonLocations: Map<string, { button: Button, row: number, column: number }> = new Map()
 
     override onInitialize(engine: GameEngine): void {
@@ -27,7 +27,7 @@ export class MenuScene extends Scene {
             engine.drawWidth * (1 / 6),
             engine.drawHeight * (1 / 6),
         )
-        this.createWebSocket()
+        // this.createWebSocket()
         // this.addBackground()
     }
 
@@ -36,7 +36,8 @@ export class MenuScene extends Scene {
         this.engine.add(background)
     }
 
-    createButtons() {
+    reloadButtons() {
+        // console.debug(`Reload Buttons`)
         this.buttonLocations.forEach(data => {
             data.button.kill()
         })
@@ -44,6 +45,7 @@ export class MenuScene extends Scene {
         this.buttonLocations = new Map()
         this.buttonData.forEach((buttonRow, row) => {
             buttonRow.forEach((data, column) => {
+                if (!data) return
                 const button = new Button(
                     data.text,
                     {
@@ -61,6 +63,7 @@ export class MenuScene extends Scene {
                     }, data.callback
                 )
                 this.buttonLocations.set(data.text, { button, row, column })
+                // console.debug(`Adding ${data.text} to button locations`)
                 this.engine.add(button)
             })
         })
@@ -78,8 +81,15 @@ export class MenuScene extends Scene {
         }
 
         this.buttonData[row][column] = { text, callback }
-        this.createButtons()
+        this.reloadButtons()
+    }
 
+    addEmptyButton(row: number, column: number) {
+        if (row === undefined) row = this.buttonData.length
+        if (!this.buttonData) this.buttonData = []
+        if (!this.buttonData[row]) this.buttonData[row] = []
+
+        this.buttonData[row][column] = null
     }
 
     send(type: WsMessageType, content: any) {

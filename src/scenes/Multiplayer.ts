@@ -11,6 +11,7 @@ export class Multiplayer extends MenuScene {
         super.onInitialize(engine)
         this.addTopButtons()
         this.refreshServerList()
+        this.createWebSocket()
 
     }
 

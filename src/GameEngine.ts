@@ -18,6 +18,7 @@ import { flareShader } from "./shaders/FlareShader";
 import { TemperatureShader, temperatureShader } from "./shaders/TemperatureShader";
 import { blurShader } from "./shaders/BlurShader";
 import { streakShader } from "./shaders/StreakShader";
+import { PartEditor } from "./scenes/Part Editor";
 
 export class GameEngine extends Engine {
 	objects = new Map<string, GameObject>();
@@ -104,6 +105,7 @@ export class GameEngine extends Engine {
 		this.add("menu", new Menu())
 		this.add(`Multiplayer`, new Multiplayer())
 		this.add(`New Server`, new NewServer())
+		this.add("Part Editor", new PartEditor())
 	}
 
 	getCookie(name: string) {
