@@ -2,15 +2,19 @@ import express from 'express';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import path from 'path';
-import { WsMessage } from "./src/utils/serverTypes";
+import { InterfaceMetaData, PartMetaData, PartsMetaData, WsMessage } from "./src/utils/serverTypes";
 import config from './webpack.server.js';
 import { Server as HttpServer } from 'http';
 import { Server as WsServer, WebSocket } from 'ws';
+import * as fs from 'fs'
+// import { createEmptyPartMetaData, PartMetaData } from './src/utils/types';
 
 class Server {
     app: express.Application
     httpServer: HttpServer
     wsServer: WsServer
+    parts: Record<string, PartMetaData> = {}
+    interfaces: Record<string, InterfaceMetaData> = {}
 
     constructor() {
         this.app = express();
@@ -18,15 +22,48 @@ class Server {
         this.createHttpAPI()
         this.createWsAPI()
         this.addWebpackMiddleware()
+        this.reloadResources()
+    }
+
+    reloadResources() {
+        const resourcePath = path.resolve(__dirname, "resources")
+        const resourceFolders = fs.readdirSync(resourcePath)
+
+        if (resourceFolders.length == 0) {
+            const basePath = path.resolve(resourcePath, "base")
+            fs.mkdirSync(basePath)
+            this.reloadResources()
+        }
+
+        resourceFolders.forEach((folder) => {
+            const currentResourcePath = path.resolve(resourcePath, folder)
+            this.loadResource(currentResourcePath)
+        })
+    }
+
+    loadResource(resourcePath: string) {
+        console.debug(`loading resource ${resourcePath}`)
+        const partsPath = path.resolve(resourcePath, "parts.json")
+
+        if (!fs.existsSync(partsPath)) {
+            fs.writeFileSync(partsPath, "")
+        }
+        const partsMetaData = JSON.parse(fs.readFileSync(partsPath, { encoding: "utf-8" })) as PartsMetaData
+
+        this.parts = { ...this.parts, ...partsMetaData?.parts }
+        this.interfaces = { ...this.interfaces, ...partsMetaData?.interfaces }
     }
 
     createWsAPI() {
 
         this.wsServer.on('connection', socket => {
+            console.log(`New Websocket Connection!`)
+            const res = { type: "debug", content: "Hello from Server" }
+            socket.send(JSON.stringify(res))
             socket.on('message', message => {
                 const wsMessage: WsMessage = JSON.parse(message.toString())
                 console.log(`wsMessage: ${wsMessage.type}`)
-
+                let res: WsMessage;
                 switch (wsMessage.type) {
                     case ("createNewServer"):
                         new GameServer(wsMessage.content as string)
@@ -35,6 +72,16 @@ class Server {
                         console.debug(`${wsMessage.content}`)
                         GameServer.joinServer(wsMessage.content as string, socket)
                         break
+                    case ("getParts"):
+                        console.debug(`getParts: ${JSON.stringify(this.parts, undefined, 2)}`)
+                        res = { type: "parts", content: this.parts }
+                        socket.send(JSON.stringify(res))
+                        break;
+                    case ("getInterfaces"):
+                        console.debug(`getInterfaces: ${JSON.stringify(this.interfaces, undefined, 2)}`)
+                        res = { type: "interfaces", content: this.interfaces }
+                        socket.send(JSON.stringify(res))
+                        break;
                     case ("debug"):
                         console.debug(`content: ${wsMessage.content}`)
                         break

@@ -9,7 +9,7 @@ import { Planet } from "./objects/Planet";
 import { Menu } from "./scenes/Menu";
 import { SolarSystem } from "./scenes/SolarSystem";
 import { Multiplayer } from "./scenes/Multiplayer";
-import { WsMessage } from "./utils/serverTypes";
+import { WsMessage, WsMessageType } from "./utils/serverTypes";
 import { NewServer } from "./scenes/NewServer";
 import { dilationShader } from "./shaders/DilationShader";
 import { erosionShader } from "./shaders/ErosionShader";
@@ -35,7 +35,6 @@ export class GameEngine extends Engine {
 	}
 
 	constructor(ws?: WebSocket) {
-
 		super({
 			width: window.innerWidth,
 			height: window.innerHeight,
@@ -57,6 +56,9 @@ export class GameEngine extends Engine {
 			const wsMessage = JSON.parse(message.data) as WsMessage;
 			this.resolveWsMessage(wsMessage);
 		});
+		this.ws.addEventListener("open", (ev) => {
+			this.send("debug", "Hello from GameEngine!")
+		});
 	}
 
 	goToScene<TData = undefined>(destinationScene: any, options?: GoToOptions<TData>): Promise<void> {
@@ -64,9 +66,10 @@ export class GameEngine extends Engine {
 		return super.goToScene(destinationScene, options)
 	}
 
-	send(wsMessage: WsMessage) {
+	send(type: WsMessageType, content: unknown) {
 		if (!this.ws) return
-		if (this.ws.readyState == 1) this.ws.send(JSON.stringify(wsMessage));
+		const message: WsMessage = { type, content }
+		if (this.ws.readyState == 1) this.ws.send(JSON.stringify(message));
 	}
 
 	resolveWsMessage(wsMessage: WsMessage) {
